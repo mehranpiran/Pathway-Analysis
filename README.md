@@ -1,3 +1,3 @@
 The R scripts are part of "Materials and Methods" utilized in the project entiled "Pathway mining in functional genomics, an integrative approach to delineate boolean relationships between Src and its targets".
 "KEGG pathways" folder contains 24 KEGG networks having c-Src element. All these networks were combined together
-To construct KEGG edgelist using "KEGG edgelist" R script. Then, "Pathway mining" R script was utilized to extract all possible shortest pathways from component A to component B.
+To construct KEGG edgelist using "KEGG edgelist" R script. Then, "Pathway mining" R script was utilized to extract all possible shortest pathways from c-Src to component Src targets. Multiple genes were previously identified to be differentially expressed by Src overactivation and they were considered as the Src targets. 
