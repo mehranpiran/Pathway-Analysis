@@ -2,18 +2,15 @@
 
 library(igraph)
 options(stringsAsFactors = F)
-setwd("F:/SRC/KEGG Pathways")
-load("KEGGedgelist.RData")
+
+# import KEGG edgelist
+setwd("")
+load("KEGG.edgelist.RData")
 
 
-edgelist = edgelist[,c(2,4,3,1)]
-edgelist[edgelist$`Interaction type` == "activation" , ][,2] = 1
-edgelist[edgelist$`Interaction type` == "inhibition" , ][,2] = -1
-edgelist$`Interaction type` = as.numeric(edgelist$`Interaction type`)
-colnames(edgelist) = c("Source" , "Interaction" , "Target" , "Edge ID")
-#save(edgelist , file = "edgelist.RData")
 
-
+# model.components object contains all DEGs affected by Src overactivation
+# select components that are present in KEGG edgelist
 up = read.table("Up-regulated.txt" , sep = "\t")[,1]
 down = read.table("Down-regulated.txt" , sep = "\t")[,1]
 model.components = c(up,down)
@@ -21,31 +18,30 @@ g = graph_from_edgelist(as.matrix(edgelist[,c(1,3)]) , directed = T)
 model.components = names(V(g))[which(names(V(g)) %in% model.components)]
 model.components
 
-duplicate <- function(x)
-{
-  x.vec <- apply(x, 1, paste, collapse = "")
-  if(length(which(duplicated(x.vec))) > 0){
-    return(x[-which(duplicated(x.vec)) , ])
-  } else {return(x)}
-}
 
 
 
 all(model.components %in% unique(c(edgelist$Source , edgelist$Target)))
-
-
-#edgelist[grep("^TJP" , edgelist[,1]) , ]
-#edgelist[grep("^TJP" , edgelist[,3]) , ]
+# True
 
 
 
-short_path = function(edgelist , model.components , input , N) {
+# Writing the main function
+
+# Function accepts four arguments:
+# edgelist: edgelist must contain 4 columns including source genes, interaction type, target gene and any kind of annotation such as IDs (edgeID, Pubmed ID and so on).
+# inputs: inputs are the genes you want to see their relashion with targets
+# model.components: they are differentially expressed genes influenced by target genes
+# N: this argument defines the maximum lenght of pathways
+# there must be no intersect between inputs and model.components
+
+short_path = function(edgelist , inputs , model.components , N) {
 
 g = graph_from_edgelist(as.matrix(edgelist[,c(1,3)]) , directed = T)
 List.paths = list()
 for(k in 1:length(model.components)){
   
-  paths = all_shortest_paths(g, from = model.components[k], to = c(input) , mode = c("out"))
+  paths = all_shortest_paths(g, from = c(inputs), to = model.components[k] , mode = c("out"))
   index = which(lapply(lapply(paths$res , names) , length) <= N)
   
   if(length(index) > 0){
@@ -116,12 +112,10 @@ List.paths = List.paths[lapply(List.paths, length) > 0]
 
 List.paths = short_path(edgelist ,  "SRC", model.components , 10)
 
-List.paths = short_path(edgelist ,   model.components , "SRC", 10)
-
-List.paths[[1]]
-
-write.table(List.paths[[1]] , "DEGs_to_Src_pathways.txt" , sep = "\t"  , col.names = T , row.names = F , quote = F)
-
+# List.paths contains different pathways starts with SRC and ends with one of the SRC targets based on the edge information in KEGG edgelist
+                            
+# The rest of the codes are for ordering pathways from shortest to longest in tabular forms
+                            
 l.dataframe = List.paths[lapply(List.paths , class) == "data.frame"]
 l.list =  List.paths[lapply(List.paths , class) == "list"]
 
@@ -144,7 +138,19 @@ if(length(l.dataframe) > 0){
 
 length(list2)
 
+                                                                    
 
+duplicate <- function(x)
+{
+  x.vec <- apply(x, 1, paste, collapse = "")
+  if(length(which(duplicated(x.vec))) > 0){
+    return(x[-which(duplicated(x.vec)) , ])
+  } else {return(x)}
+}
+
+length(list2)
+# 4
+                                                                    
 d1 = duplicate(list2[[1]])
 d2 = duplicate(list2[[2]])
 d3 = duplicate(list2[[3]])
@@ -238,8 +244,8 @@ if(length(l.list) > 0){
   
 }
 
-l.list[[2]]
-l.list = l.list[[1]]
+length(list1)
+# 6
 
 
 d1 = duplicate(l.list[[1]])
